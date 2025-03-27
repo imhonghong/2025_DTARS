@@ -66,5 +66,6 @@ if __name__ == "__main__":
     for path in range(len(best_path)):
         print("best_path", path, best_path[path])
         print("extra_path is", the_extra_path[path])
+        print("")
 
     print("min_extra", min_extra)
