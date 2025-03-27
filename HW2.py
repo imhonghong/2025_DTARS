@@ -34,11 +34,11 @@ def make_chain(all_path, current_path=[], step=0): # step2: generate all linked 
             chains.extend(make_chain(all_path, current_path + [candidate], step + 1)) # make chain path recursively
     return chains
 
-def find_extra_path(chain_path):
+def find_extra_path(chain_path, defined_path_set):
     extra_path_num_list = []
     for i in range(len(chain_path)):
         unique_path = set(chain_path[i])
-        extra_path_num = len(unique_path-defind_path)
+        extra_path_num = len(unique_path-defined_path_set)
         extra_path_num_list.append(extra_path_num)  # find evry path needs how many extra path
     min_extra = min(extra_path_num_list)    # we want least extra path
     best_path_idx = [i for i in range(len(extra_path_num_list)) if extra_path_num_list[i] == min_extra] # best solution may have multiple path
@@ -46,21 +46,20 @@ def find_extra_path(chain_path):
     extra_path = []
     for i in best_path_idx:
         best_path.append(chain_path[i]) # best path
-        extra_path.append(set(chain_path[i])-defind_path) # extra path corresponding to best path
+        extra_path.append(set(chain_path[i])-defined_path_set) # extra path corresponding to best path
     return best_path, extra_path, min_extra
-    
-if __name__ == "__main__":
 
-    #text = "001010010101100001110110"
-    text = "111010000100110101110000"
-    cut_text, defind_path = question_given(text)
+def main():
+    text = "001010010101100001110110"
+    #text = "111010000100110101110000"
+    cut_text, defind_path_set = question_given(text)
     
     print("cut_text", len(cut_text))
     
     tuple_set = set(gen_tuple(cut_text))
     all_path = gen_candidate(cut_text, tuple_set)
     chain_path = make_chain(all_path)
-    best_path, the_extra_path, min_extra = find_extra_path(chain_path)
+    best_path, the_extra_path, min_extra = find_extra_path(chain_path, defind_path_set)
     
     print("best_path:")
     for path in range(len(best_path)):
@@ -69,3 +68,6 @@ if __name__ == "__main__":
         print("")
 
     print("min_extra", min_extra)
+
+if __name__ == "__main__":
+    main()
