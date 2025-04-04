@@ -1,112 +1,73 @@
-#include <iostream>
-#include <vector>
-#include <set>
-#include <string>
-#include <tuple>
-#include <typeinfo>
-#include <algorithm>
-using namespace std;
+def question_given(text):
+    cut_text = [(text[i:i+3]) for i in range(0, len(text), 3)]  # cut text into 3 bits
+    cut_text = [int(i, 2) for i in cut_text]    # string to decimal
+    p0 = (0, 3, 1) # Question Given
+    p1 = (0, 6 ,1) # tuple(departure, trans, arrival)
+    p2 = (0, 4, 2)
+    p3 = (1, 3, 3)
+    p4 = (2, 6, 1)
+    p5 = (2, 1, 3)
+    p6 = (2, 4, 3)
+    p7 = (3, 3, 0)
+    defind_path_set = set([p0, p1, p2, p3, p4, p5, p6, p7])
+    return cut_text, defind_path_set
 
-vector <int> text2dec(string text){
-    vector<int> required_trans;
+def gen_tuple(cut_text): #gen all possible tuple
+    for i in range(4):
+        for j in cut_text:
+            for k in range(4):
+                yield (i, j, k)
+
+def gen_candidate(cut_text, tuple_set): # step1: pick out trans meets cut_text[i]
+    all_path = []
+    for i in range(len(cut_text)):
+        candidate = [path for path in tuple_set if path[1] == cut_text[i]]
+        all_path.append(candidate)
+    return all_path
+
+def make_chain(all_path, current_path=[], step=0): # step2: generate all linked path
+    if step == len(all_path):   # stop recursion
+        return [current_path]  # Return completed path
+    chains = []
+    for candidate in all_path[step]:
+        if not current_path or current_path[-1][2] == candidate[0]:  # Ensure continuity
+            chains.extend(make_chain(all_path, current_path + [candidate], step + 1)) # make chain path recursively
+    return chains
+
+def find_extra_path(chain_path, defined_path_set):
+    extra_path_num_list = []
+    for i in range(len(chain_path)):
+        unique_path = set(chain_path[i])
+        extra_path_num = len(unique_path-defined_path_set)
+        extra_path_num_list.append(extra_path_num)  # find evry path needs how many extra path
+    min_extra = min(extra_path_num_list)    # we want least extra path
+    best_path_idx = [i for i in range(len(extra_path_num_list)) if extra_path_num_list[i] == min_extra] # best solution may have multiple path
+    best_path = []
+    extra_path = []
+    for i in best_path_idx:
+        best_path.append(chain_path[i]) # best path
+        extra_path.append(set(chain_path[i])-defined_path_set) # extra path corresponding to best path
+    return best_path, extra_path, min_extra
+
+def main():
+    text = "001010010101100001110110"
+    #text = "111010000100110101110000"
+    cut_text, defind_path_set = question_given(text)
     
-    for (int i=0 ; i< text.length()-2; i+=3){
-	    int b2 = (text[i]  == '1')? 	4 : 0;
-	    int b1 = (text[i+1] == '1')?	2 : 0;
-	    int b0 = (text[i+2] == '1')?	1 : 0;
-        required_trans.push_back(b2 + b1 + b0);
-    }
-    return required_trans;
-}
-
-set<tuple<int, int, int>> defined_paths(vector<tuple<int, int, int>> given_paths){
-    set<tuple<int, int, int>> defined_paths;
-    for (auto path : given_paths){
-        defined_paths.insert(path);
-    }
-    return defined_paths;
-}
-
-vector<tuple<int, int, int>> gen_tuple(vector<int> required_trans){
-    vector<tuple<int, int, int>> all_tuples;
-    for (int i=0; i<4; i++){
-        for (int j=0; j<4; j++){
-            for (auto k:required_trans){
-                all_tuples.push_back(make_tuple(i, k, j));
-            }
-        }
-    }
-    return all_tuples;
-}
-
-vector<vector<tuple<int, int, int>>> step_solution(vector<tuple<int, int, int>> all_tuples, vector<int> required_trans){
-    vector<vector<tuple<int, int, int>>> candidate_solution;
-    for (auto step:required_trans){
-        vector<tuple<int, int, int>> step_solution;
-        for (auto tuple:all_tuples){
-            if (get<1>(tuple) == step){
-                step_solution.push_back(tuple);
-            }
-        }
-        candidate_solution.push_back(step_solution);
-    }
-    return candidate_solution;
-}
-
-//make chains recursively if the first element of the tuple is equal to the last element of the previous tuple
-vector<vector<tuple<int, int, int>>> make_chains(vector<vector<tuple<int, int, int>>> step_solutions, vector<tuple<int, int, int>> current_path, int step){
-    vector<vector<tuple<int, int, int>>> chains;
-    if (step == step_solutions.size()){
-        return {current_path};
-    }
+    print("cut_text", len(cut_text))
     
-    for (auto candidate : step_solutions.at(step)){
-        if (current_path.empty() || get<0>(candidate) == get<2>(current_path.back())){
-            auto new_path = current_path;
-            new_path.push_back(candidate);
-            auto new_chains = make_chains(step_solutions, new_path, step + 1);
-            cout <<"New chains is " << endl;
-            for (auto chain : new_chains){
-                cout << "{";
-                for (auto tuple : chain){
-                    cout << "(" << get<0>(tuple) << ", " << get<1>(tuple) << ", " << get<2>(tuple) << "), ";
-                }
-                cout << "}" << endl;
-            };
-        }
-    }
-    return chains;
-}
-
-int main(){
-    string text = "001010010101100001110110";
-    vector<int> required_trans;
-    required_trans = text2dec(text);
+    tuple_set = set(gen_tuple(cut_text))
+    all_path = gen_candidate(cut_text, tuple_set)
+    chain_path = make_chain(all_path)
+    best_path, the_extra_path, min_extra = find_extra_path(chain_path, defind_path_set)
     
-    vector<tuple<int, int, int>> given_paths = {
-        make_tuple(0, 3, 1),
-        make_tuple(0, 6 ,1),
-        make_tuple(0, 4, 2),
-        make_tuple(1, 3, 3),
-        make_tuple(2, 6, 1),
-        make_tuple(2, 1, 3),
-        make_tuple(2, 4, 3),
-        make_tuple(3, 3, 0),
-    };
-    set<tuple<int, int, int>> defined_paths_set = defined_paths(given_paths);
-    vector<tuple<int, int, int>> all_tuples = gen_tuple(required_trans);
-    vector<vector<tuple<int, int, int>>> step_solutions = step_solution(all_tuples, required_trans);
-    vector<vector<tuple<int, int, int>>> all_paths = make_chains(step_solutions, {}, 7);
-    /*
-    cout << "All paths:" << endl;
-    for (auto path : all_paths){
-        cout << "{";
-        for (auto tuple : path){
-            cout << "(" << get<0>(tuple) << ", " << get<1>(tuple) << ", " << get<2>(tuple) << "), ";
-        }
-        cout << "}" << endl;
-    };
-    cout << "Total number of paths: " << all_paths.size() << endl;
-    */
-    return 0;
-}
+    print("best_path:")
+    for path in range(len(best_path)):
+        print("best_path", path, best_path[path])
+        print("extra_path is", the_extra_path[path])
+        print("")
+
+    print("min_extra", min_extra)
+
+if __name__ == "__main__":
+    main()
