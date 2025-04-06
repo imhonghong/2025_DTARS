@@ -49,9 +49,27 @@ def find_extra_path(chain_path, defined_path_set):
         extra_path.append(set(chain_path[i])-defined_path_set) # extra path corresponding to best path
     return best_path, extra_path, min_extra
 
+def check_FSM(best_path, extra_path): #if the path include (a,b,c) and (a,b,d), we should remove the path
+    best_path1 = best_path.copy()
+    extra_path1 = extra_path.copy()
+    print(len(best_path1), len(best_path1[0]))
+
+    idx = 0
+    for path in best_path1:
+        unique_FSM= set() # every path
+        for step in path:
+            unique_FSM.add(step[0:2])
+        if len(unique_FSM) != len(path):
+            best_path1.remove(path)
+            extra_path1.pop(idx) # remove the path which has same (a,b) but different c
+        idx += 1
+        unique_FSM.clear() # clear the set for next path
+
+    return best_path1, extra_path1
+            
 def main():
-    text = "001010010101100001110110"
-    #text = "111010000100110101110000"
+    #text = "001010010101100001110110"
+    text = "111010000100110101110000"
     cut_text, defind_path_set = question_given(text)
     
     print("cut_text", len(cut_text))
@@ -60,11 +78,11 @@ def main():
     all_path = gen_candidate(cut_text, tuple_set)
     chain_path = make_chain(all_path)
     best_path, the_extra_path, min_extra = find_extra_path(chain_path, defind_path_set)
-    
+    best_path1, the_extra_path1 = check_FSM(best_path, the_extra_path)
     print("best_path:")
-    for path in range(len(best_path)):
-        print("best_path", path, best_path[path])
-        print("extra_path is", the_extra_path[path])
+    for path in range(len(best_path1)):
+        print("best_path", path, best_path1[path])
+        print("extra_path is", the_extra_path1[path])
         print("")
 
     print("min_extra", min_extra)
