@@ -50,6 +50,7 @@ def find_extra_path(chain_path, defined_path_set):
     return best_path, extra_path, min_extra
 
 def check_FSM(best_path, extra_path): #if the path include (a,b,c) and (a,b,d), we should remove the path
+    # for b=0,1,2,3,4,5,6,7, 01,23,45,67 is also not allowed
     best_path1 = best_path.copy()
     extra_path1 = extra_path.copy()
     print(len(best_path1), len(best_path1[0]))
@@ -58,7 +59,7 @@ def check_FSM(best_path, extra_path): #if the path include (a,b,c) and (a,b,d), 
     for path in best_path1:
         unique_FSM= set() # every path
         for step in path:
-            unique_FSM.add(step[0:2])
+            unique_FSM.add((step[0], (step[1]//2)))
         if len(unique_FSM) != len(path):
             best_path1.remove(path)
             extra_path1.pop(idx) # remove the path which has same (a,b) but different c
@@ -68,8 +69,8 @@ def check_FSM(best_path, extra_path): #if the path include (a,b,c) and (a,b,d), 
     return best_path1, extra_path1
             
 def main():
-    #text = "001010010101100001110110"
-    text = "111010000100110101110000"
+    text = "001010010101100001110110"
+    #text = "111010000100110101110000"
     cut_text, defind_path_set = question_given(text)
     
     print("cut_text", len(cut_text))
