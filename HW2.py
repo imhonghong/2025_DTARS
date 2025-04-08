@@ -10,12 +10,13 @@ def question_given(text):
     p6 = (2, 4, 3)
     p7 = (3, 3, 0)
     defind_path_set = set([p0, p1, p2, p3, p4, p5, p6, p7])
-    return cut_text, defind_path_set
+    FSM_set = set((p[0], (p[1]//2)) for p in defind_path_set) # FSM set
+    return cut_text, defind_path_set, FSM_set
 
 def gen_tuple(cut_text): #gen all possible tuple
-    for i in range(4):
+    for i in range(5):
         for j in cut_text:
-            for k in range(4):
+            for k in range(5):
                 yield (i, j, k)
 
 def gen_candidate(cut_text, tuple_set): # step1: pick out trans meets cut_text[i]
@@ -41,7 +42,7 @@ def find_extra_path(chain_path, defined_path_set):
         extra_path_num = len(unique_path-defined_path_set)
         extra_path_num_list.append(extra_path_num)  # find evry path needs how many extra path
     min_extra = min(extra_path_num_list)    # we want least extra path
-    best_path_idx = [i for i in range(len(extra_path_num_list)) if extra_path_num_list[i] == min_extra] # best solution may have multiple path
+    best_path_idx = [i for i in range(len(extra_path_num_list)) if extra_path_num_list[i] == 4] # best solution may have multiple path
     best_path = []
     extra_path = []
     for i in best_path_idx:
@@ -71,7 +72,7 @@ def check_FSM(best_path, extra_path): #if the path include (a,b,c) and (a,b,d), 
 def main():
     text = "001010010101100001110110"
     #text = "111010000100110101110000"
-    cut_text, defind_path_set = question_given(text)
+    cut_text, defind_path_set, FSM_set = question_given(text)
     
     print("cut_text", len(cut_text))
     
@@ -82,8 +83,17 @@ def main():
     best_path1, the_extra_path1 = check_FSM(best_path, the_extra_path)
     print("best_path:")
     for path in range(len(best_path1)):
+        extra_path = set(the_extra_path1[path])-defind_path_set
+        used_path = set(p for p in best_path1[path])&defind_path_set
+        path_FSM = set((p[0], (p[1]//2)) for p in extra_path)
+        set_extra = set((ep[0], ep[1]//2) for ep in extra_path)
+        if len(set_extra)!= len(extra_path):
+            continue
+        if len(FSM_set&path_FSM)!=0:
+            continue
         print("best_path", path, best_path1[path])
         print("extra_path is", the_extra_path1[path])
+        print("used_path is", used_path)
         print("")
 
     print("min_extra", min_extra)
